@@ -1,0 +1,78 @@
+name: Build PornhwaReader APK
+
+on:
+  push:
+    branches:
+      - "feature/pornhwareader-source"
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pornhwareader-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out extension repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Check out the current Keiyoushi build system (sparse)
+        run: |
+          git clone --filter=blob:none --depth 1 --no-checkout --sparse https://github.com/keiyoushi/extensions-source.git "$RUNNER_TEMP/extensions-source"
+          cd "$RUNNER_TEMP/extensions-source"
+          git sparse-checkout set --cone common compiler core gradle lib lib-multisrc src/en/pornhwareader
+          mkdir -p src/en/pornhwareader
+          cp -R "$GITHUB_WORKSPACE/src/en/pornhwareader/." src/en/pornhwareader/
+
+      - name: Build release APK
+        working-directory: ${{ runner.temp }}/extensions-source
+        run: ./gradlew :src:en:pornhwareader:assembleRelease --no-daemon --stacktrace
+
+      - name: Validate APK and package metadata
+        id: validate
+        working-directory: ${{ runner.temp }}/extensions-source
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="$(find src/en/pornhwareader/build/outputs/apk -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          unzip -t "$APK"
+          unzip -Z1 "$APK" | grep -qx 'AndroidManifest.xml'
+          unzip -Z1 "$APK" | grep -q '^classes.dex$'
+          AAPT="$(find "$ANDROID_HOME/build-tools" -type f -name aapt | sort -V | tail -n 1)"
+          test -x "$AAPT"
+          "$AAPT" dump badging "$APK" | tee "$RUNNER_TEMP/apk-badging.txt"
+          grep -F "package: name='eu.kanade.tachiyomi.extension.en.pornhwareader'" "$RUNNER_TEMP/apk-badging.txt"
+          mkdir -p "$GITHUB_WORKSPACE/artifacts"
+          cp "$APK" "$GITHUB_WORKSPACE/artifacts/PornhwaReader-v1.0.0.apk"
+
+      - name: Upload verified APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PornhwaReader-release-apk
+          path: artifacts/PornhwaReader-v1.0.0.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release for version tags only
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: PornhwaReader ${{ github.ref_name }}
+          files: artifacts/PornhwaReader-v1.0.0.apk
+          fail_on_unmatched_files: true
