@@ -46,6 +46,8 @@ class PornhwaReader(
 
     override val name = "PornhwaReader"
 
+    override val baseUrl = "https://pornhwareader.com"
+
     override val supportsFilterFetching = true
 
     override suspend fun getPopularManga(page: Int): MangasPage =
