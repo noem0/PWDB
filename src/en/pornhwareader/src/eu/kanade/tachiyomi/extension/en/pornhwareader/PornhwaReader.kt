@@ -63,7 +63,7 @@ abstract class PornhwaReader : KeiSource() {
         }
 
         val parameters = mutableListOf<Pair<String, String>>()
-        parameters += schema.hidden
+        parameters += schema.hidden.filterNot { it.first == schema.pageName }
         if (query.isNotBlank()) {
             parameters += schema.queryName!! to query
         }
@@ -246,7 +246,7 @@ abstract class PornhwaReader : KeiSource() {
         val author = labelledValue(document, "author")
         val artist = labelledValue(document, "artist")
         val rating = labelledValue(document, "rating")
-        val statusText = labelledValue(document, "status").ifBlank { document.text() }
+        val statusText = labelledValue(document, "status")
 
         manga.url = seriesPath
         manga.title = sanitizeTitle(title)
@@ -359,7 +359,7 @@ abstract class PornhwaReader : KeiSource() {
         val queryName = inputs.firstOrNull { input ->
             val type = input.attr("type").lowercase(Locale.ROOT)
             val name = input.attr("name").lowercase(Locale.ROOT)
-            type == "search" || name == "q" || name.contains("search") || name.contains("query")
+            type == "search" || name == "q" || name == "query" || name == "search" || name.contains("search") || name.contains("query") || input.attr("placeholder").contains("search", ignoreCase = true)
         }?.attr("name")
 
         val hidden = form.select("input[type=hidden][name]").mapNotNull { input ->
@@ -424,7 +424,7 @@ abstract class PornhwaReader : KeiSource() {
                 input.attr("type").equals("search", true) ||
                     name == "q" || name.contains("search") || name.contains("query")
             }
-            val filterInput = form.select("select[multiple], input[type=checkbox]").isNotEmpty()
+            val filterInput = form.select("select[name], input[type=checkbox][name]").isNotEmpty()
             searchInput || filterInput
         }
     }

@@ -31,7 +31,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
-          packages: platform-tools platforms;android-37 build-tools;37.0.0
+          packages: platform-tools platforms;android-37.0 build-tools;37.0.0
 
       - name: Check out the current Keiyoushi build system (sparse)
         run: |
