@@ -38,6 +38,7 @@ jobs:
           git clone --filter=blob:none --depth 1 --no-checkout --sparse https://github.com/keiyoushi/extensions-source.git "$RUNNER_TEMP/extensions-source"
           cd "$RUNNER_TEMP/extensions-source"
           git sparse-checkout set --cone common compiler core gradle lib lib-multisrc src/en/pornhwareader
+          git checkout HEAD -- common compiler core gradle lib lib-multisrc
           for file in gradlew settings.gradle.kts build.gradle.kts gradle.properties; do
             git show "HEAD:$file" > "$file"
           done
