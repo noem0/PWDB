@@ -39,7 +39,10 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Source
-class PornhwaReader : KeiSource() {
+class PornhwaReader(
+    override val lang: String,
+    override val id: Long,
+) : KeiSource() {
 
     override val supportsFilterFetching = true
 
