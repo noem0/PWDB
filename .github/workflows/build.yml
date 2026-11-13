@@ -42,6 +42,9 @@ jobs:
             git show "HEAD:$file" > "$file"
           done
           chmod +x gradlew
+          mkdir -p gradle/wrapper
+          git show HEAD:gradle/wrapper/gradle-wrapper.jar > gradle/wrapper/gradle-wrapper.jar
+          git show HEAD:gradle/wrapper/gradle-wrapper.properties > gradle/wrapper/gradle-wrapper.properties
           mkdir -p src/en/pornhwareader
           cp -R "$GITHUB_WORKSPACE/src/en/pornhwareader/." src/en/pornhwareader/
 
