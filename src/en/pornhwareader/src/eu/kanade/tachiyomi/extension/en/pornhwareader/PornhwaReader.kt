@@ -44,6 +44,8 @@ class PornhwaReader(
     override val id: Long,
 ) : KeiSource() {
 
+    override val name = "PornhwaReader"
+
     override val supportsFilterFetching = true
 
     override suspend fun getPopularManga(page: Int): MangasPage =
@@ -88,6 +90,8 @@ class PornhwaReader(
                         }
                     }
                 }
+
+                else -> Unit
             }
         }
 
@@ -543,6 +547,9 @@ class PornhwaReader(
             ?: return null
         return baseUrl.toHttpUrl().resolve(next.attr("href"))?.toString()
     }
+
+    private fun isSeriesPath(path: String): Boolean =
+        SERIES_URL.matches(path.substringBefore('?').trimEnd('/'))
 
     private fun pathAndQuery(href: String): String {
         val resolved = baseUrl.toHttpUrl().resolve(href) ?: return ""
