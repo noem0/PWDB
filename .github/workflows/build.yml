@@ -37,15 +37,47 @@ jobs:
         run: |
           git clone --filter=blob:none --depth 1 --no-checkout --sparse https://github.com/keiyoushi/extensions-source.git "$RUNNER_TEMP/extensions-source"
           cd "$RUNNER_TEMP/extensions-source"
-          git sparse-checkout set --cone common compiler core gradle lib lib-multisrc src/en/pornhwareader
-          git checkout HEAD -- common compiler core gradle lib lib-multisrc
-          for file in gradlew settings.gradle.kts build.gradle.kts gradle.properties; do
+          git sparse-checkout set --cone common compiler core gradle src/en/pornhwareader
+          git checkout HEAD -- common compiler core gradle
+          for file in gradlew build.gradle.kts gradle.properties .editorconfig; do
             git show "HEAD:$file" > "$file"
           done
           chmod +x gradlew
           mkdir -p gradle/wrapper
           git show HEAD:gradle/wrapper/gradle-wrapper.jar > gradle/wrapper/gradle-wrapper.jar
           git show HEAD:gradle/wrapper/gradle-wrapper.properties > gradle/wrapper/gradle-wrapper.properties
+          cat > settings.gradle.kts <<'EOF'
+          pluginManagement {
+              includeBuild("gradle/build-logic")
+              repositories {
+                  google()
+                  mavenCentral()
+                  gradlePluginPortal()
+                  maven(url = "https://www.jitpack.io")
+              }
+          }
+
+          dependencyResolutionManagement {
+              versionCatalogs {
+                  create("kei") {
+                      from(files("gradle/kei.versions.toml"))
+                  }
+              }
+              @Suppress("UnstableApiUsage")
+              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+              @Suppress("UnstableApiUsage")
+              repositories {
+                  google()
+                  mavenCentral()
+                  maven(url = "https://www.jitpack.io")
+              }
+          }
+
+          rootProject.name = "Keiyoushi"
+          include(":core")
+          include(":compiler")
+          include(":src:en:pornhwareader")
+          EOF
           mkdir -p src/en/pornhwareader
           cp -R "$GITHUB_WORKSPACE/src/en/pornhwareader/." src/en/pornhwareader/
 
