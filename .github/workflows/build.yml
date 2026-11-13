@@ -83,7 +83,8 @@ jobs:
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/extensions-source
-        run: ./gradlew :src:en:pornhwareader:spotlessApply --no-daemon
+        run: |
+          ./gradlew :src:en:pornhwareader:spotlessApply --no-daemon
           ./gradlew :src:en:pornhwareader:assembleRelease --no-daemon --stacktrace
 
       - name: Validate APK and package metadata
