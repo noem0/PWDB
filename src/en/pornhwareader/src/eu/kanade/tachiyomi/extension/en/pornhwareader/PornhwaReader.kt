@@ -39,7 +39,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @Source
-abstract class PornhwaReader : KeiSource() {
+class PornhwaReader : KeiSource() {
 
     override val supportsFilterFetching = true
 
@@ -125,8 +125,8 @@ abstract class PornhwaReader : KeiSource() {
             ?: throw IOException("Invalid PornhwaReader series URL: ${manga.url}")
         val seriesUrl = baseUrl + seriesPath
         val firstPage = client.get(seriesUrl, Fetch.DOCUMENT).asJsoup()
-        val updatedManga = parseSeriesDetails(firstPage, manga, seriesPath)
-        val chapterList = fetchAllChapters(seriesPath, firstPage)
+        val updatedManga = if (fetchDetails) parseSeriesDetails(firstPage, manga, seriesPath) else manga
+        val chapterList = if (fetchChapters) fetchAllChapters(seriesPath, firstPage) else chapters
         return SMangaUpdate(updatedManga, chapterList)
     }
 

@@ -83,7 +83,8 @@ jobs:
 
       - name: Build release APK
         working-directory: ${{ runner.temp }}/extensions-source
-        run: ./gradlew :src:en:pornhwareader:assembleRelease --no-daemon --stacktrace
+        run: ./gradlew :src:en:pornhwareader:spotlessApply --no-daemon
+          ./gradlew :src:en:pornhwareader:assembleRelease --no-daemon --stacktrace
 
       - name: Validate APK and package metadata
         id: validate
@@ -101,13 +102,13 @@ jobs:
           "$AAPT" dump badging "$APK" | tee "$RUNNER_TEMP/apk-badging.txt"
           grep -F "package: name='eu.kanade.tachiyomi.extension.en.pornhwareader'" "$RUNNER_TEMP/apk-badging.txt"
           mkdir -p "$GITHUB_WORKSPACE/artifacts"
-          cp "$APK" "$GITHUB_WORKSPACE/artifacts/PornhwaReader-v1.0.0.apk"
+          cp "$APK" "$GITHUB_WORKSPACE/artifacts/$(basename "$APK")"
 
       - name: Upload verified APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: PornhwaReader-release-apk
-          path: artifacts/PornhwaReader-v1.0.0.apk
+          path: artifacts/*.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -116,5 +117,5 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           name: PornhwaReader ${{ github.ref_name }}
-          files: artifacts/PornhwaReader-v1.0.0.apk
+          files: artifacts/*.apk
           fail_on_unmatched_files: true
